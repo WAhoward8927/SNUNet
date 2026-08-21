@@ -8,11 +8,11 @@ from utils import transforms as tr
 Load all training and validation data paths
 '''
 def full_path_loader(data_dir):
-    train_data = [i for i in os.listdir(data_dir + 'train/A/') if not
+    train_data = [i for i in os.listdir(data_dir + 'train/time1/') if not
     i.startswith('.')]
     train_data.sort()
 
-    valid_data = [i for i in os.listdir(data_dir + 'val/A/') if not
+    valid_data = [i for i in os.listdir(data_dir + 'val/time1/') if not
     i.startswith('.')]
     valid_data.sort()
 
@@ -49,7 +49,7 @@ Load all testing data paths
 '''
 def full_test_loader(data_dir):
 
-    test_data = [i for i in os.listdir(data_dir + 'test/A/') if not
+    test_data = [i for i in os.listdir(data_dir + 'test/time1/') if not
                     i.startswith('.')]
     test_data.sort()
 
@@ -72,8 +72,8 @@ def cdd_loader(img_path, label_path, aug):
     dir = img_path[0]
     name = img_path[1]
 
-    img1 = Image.open(dir + 'A/' + name)
-    img2 = Image.open(dir + 'B/' + name)
+    img1 = Image.open(dir + 'time1/' + name)
+    img2 = Image.open(dir + 'time2/' + name)
     label = Image.open(label_path)
     sample = {'image': (img1, img2), 'label': label}
 

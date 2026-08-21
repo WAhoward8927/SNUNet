@@ -1,0 +1,21 @@
+{
+  "baseline": "Mobile-CDNet",
+  "baseline_commit": "3c1d97ce165c05c83a694bf3bf17d450770a2c66",
+  "dataset": "SYSU-CD",
+  "images": [
+    "time1",
+    "time2"
+  ],
+  "labels": "label",
+  "epochs": 200,
+  "batch_size": 16,
+  "learning_rate": 0.0005,
+  "optimizer": "Adam",
+  "betas": [
+    0.9,
+    0.99
+  ],
+  "weight_decay": 0.0001,
+  "scheduler": "StepLR(100,0.1)",
+  "loss": "BCE+Dice"
+}

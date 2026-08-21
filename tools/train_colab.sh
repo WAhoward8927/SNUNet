@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#! /usr/bin/env bash
 set -euo pipefail
 export SNUNET_DATA_ROOT="/content/LEVIRCD_256"
 export SNUNET_OUTPUT_ROOT="/content/drive/MyDrive/SNUNet/LEVIRCD"
