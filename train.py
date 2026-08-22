@@ -59,7 +59,7 @@ model = load_model(opt, dev)
 
 criterion = get_criterion(opt)
 optimizer = torch.optim.Adam(model.parameters(), opt.learning_rate, (0.9, 0.99), eps=1e-8, weight_decay=1e-4)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
+max_steps = max(1, opt.epochs * len(train_loader))
 
 """
  Set starting values
@@ -83,6 +83,13 @@ for epoch in range(opt.epochs):
         tbar.set_description("epoch {} info ".format(epoch) + str(batch_iter) + " - " + str(batch_iter+opt.batch_size))
         batch_iter = batch_iter+opt.batch_size
         total_step += 1
+        # Mobile-CDNet: 200-step warm-up, then per-iteration poly decay.
+        if epoch == 0 and total_step < 200:
+            current_lr = opt.learning_rate * (0.9 * (total_step + 1) / 200.0 + 0.1)
+        else:
+            current_lr = opt.learning_rate * ((1.0 - total_step / max_steps) ** 0.9)
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = current_lr
         # Set variables for training
         batch_img1 = batch_img1.float().to(dev)
         batch_img2 = batch_img2.float().to(dev)
@@ -117,7 +124,7 @@ for epoch in range(opt.epochs):
                                     cd_loss,
                                     cd_corrects,
                                     cd_train_report,
-                                    scheduler.get_last_lr())
+                                    [current_lr])
 
         # log the batch mean metrics
         mean_train_metrics = get_mean_metrics(train_metrics)
@@ -128,7 +135,6 @@ for epoch in range(opt.epochs):
         # clear batch variables from memory
         del batch_img1, batch_img2, labels
 
-    scheduler.step()
     logging.info("EPOCH {} TRAIN METRICS".format(epoch) + str(mean_train_metrics))
 
     """
@@ -165,7 +171,7 @@ for epoch in range(opt.epochs):
                                       cd_loss,
                                       cd_corrects,
                                       cd_val_report,
-                                      scheduler.get_last_lr())
+                                      [current_lr])
 
             # log the batch mean metrics
             mean_val_metrics = get_mean_metrics(val_metrics)
@@ -181,11 +187,7 @@ for epoch in range(opt.epochs):
         """
         Store the weights of good epochs based on validation results
         """
-        if ((mean_val_metrics['cd_precisions'] > best_metrics['cd_precisions'])
-                or
-                (mean_val_metrics['cd_recalls'] > best_metrics['cd_recalls'])
-                or
-                (mean_val_metrics['cd_f1scores'] > best_metrics['cd_f1scores'])):
+        if mean_val_metrics['cd_f1scores'] > best_metrics['cd_f1scores']:
 
             # Insert training and epoch information to metadata dictionary
             logging.info('updata the model')
@@ -197,6 +199,7 @@ for epoch in range(opt.epochs):
             with open(checkpoint_dir / ('metadata_epoch_' + str(epoch) + '.json'), 'w') as fout:
                 json.dump(metadata, fout)
             torch.save(model, checkpoint_dir / ('checkpoint_epoch_' + str(epoch) + '.pt'))
+            torch.save(model, checkpoint_dir / 'best_model.pt')
 
             # comet.log_asset(upload_metadata_file_path)
             best_metrics = mean_val_metrics

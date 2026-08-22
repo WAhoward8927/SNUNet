@@ -1,0 +1,19 @@
+{
+  "dataset": "BCDD",
+  "dataset_layout": {
+    "images_t1": "A",
+    "images_t2": "B",
+    "labels": "label"
+  },
+  "project": "/content/SNUNet_revise",
+  "output_root": "/content/drive/MyDrive/SNUNet/BCDD",
+  "epochs": 200,
+  "batch_size": 16,
+  "learning_rate": 0.0005,
+  "optimizer": "Adam(betas=(0.9,0.99), eps=1e-8, weight_decay=1e-4)",
+  "loss": "Exact Mobile-CDNet BCE+Dice on SNUNet final output only",
+  "lr_schedule": "Mobile-CDNet: 200-step warm-up, then per-iteration poly decay (power=0.9)",
+  "max_steps": "epochs * len(train_loader)",
+  "best_checkpoint": "validation F1 only",
+  "preprocessing": "Exact Mobile-CDNet Transforms.py reuse: BGR Normalize, Scale(256), train CropResize(8)+Flip+Exchange; eval Normalize+Scale"
+}

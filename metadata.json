@@ -9,7 +9,7 @@
   "batch_size": 16,
   "learning_rate": 0.0005,
   "loss_function": "mobile_bce_dice",
-  "dataset_dir": "/content/SYSU-CD/",
-  "weight_dir": "/content/drive/MyDrive/SNUNet/SYSU/checkpoints",
-  "log_dir": "/content/drive/MyDrive/SNUNet/SYSU/logs"
+  "dataset_dir": "/content/BCDD/",
+  "weight_dir": "/content/drive/MyDrive/SNUNet/BCDD/checkpoints",
+  "log_dir": "/content/drive/MyDrive/SNUNet/BCDD/logs"
 }

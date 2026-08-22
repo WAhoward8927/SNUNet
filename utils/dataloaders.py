@@ -8,11 +8,11 @@ from utils import transforms as tr
 Load all training and validation data paths
 '''
 def full_path_loader(data_dir):
-    train_data = [i for i in os.listdir(data_dir + 'train/time1/') if not
+    train_data = [i for i in os.listdir(data_dir + 'train/A/') if not
     i.startswith('.')]
     train_data.sort()
 
-    valid_data = [i for i in os.listdir(data_dir + 'val/time1/') if not
+    valid_data = [i for i in os.listdir(data_dir + 'val/A/') if not
     i.startswith('.')]
     valid_data.sort()
 
@@ -49,7 +49,7 @@ Load all testing data paths
 '''
 def full_test_loader(data_dir):
 
-    test_data = [i for i in os.listdir(data_dir + 'test/time1/') if not
+    test_data = [i for i in os.listdir(data_dir + 'test/A/') if not
                     i.startswith('.')]
     test_data.sort()
 
@@ -72,8 +72,8 @@ def cdd_loader(img_path, label_path, aug):
     dir = img_path[0]
     name = img_path[1]
 
-    img1 = Image.open(dir + 'time1/' + name)
-    img2 = Image.open(dir + 'time2/' + name)
+    img1 = Image.open(dir + 'A/' + name)
+    img2 = Image.open(dir + 'B/' + name)
     label = Image.open(label_path)
     sample = {'image': (img1, img2), 'label': label}
 
@@ -103,3 +103,37 @@ class CDDloader(data.Dataset):
 
     def __len__(self):
         return len(self.full_load)
+
+
+# MOBILE_CDN_BCDD_PREPROCESSING
+import cv2
+import numpy as np
+from utils import mobile_cdnet_transforms as mobile_tr
+
+_mobile_mean = [0.406, 0.456, 0.485, 0.406, 0.456, 0.485]
+_mobile_std = [0.225, 0.224, 0.229, 0.225, 0.224, 0.229]
+_mobile_train_transform = mobile_tr.Compose([
+    mobile_tr.Normalize(mean=_mobile_mean, std=_mobile_std),
+    mobile_tr.Scale(256, 256),
+    mobile_tr.RandomCropResize(int(7.0 / 224.0 * 256)),
+    mobile_tr.RandomFlip(),
+    mobile_tr.RandomExchange(),
+    mobile_tr.ToTensor(),
+])
+_mobile_eval_transform = mobile_tr.Compose([
+    mobile_tr.Normalize(mean=_mobile_mean, std=_mobile_std),
+    mobile_tr.Scale(256, 256),
+    mobile_tr.ToTensor(),
+])
+
+# This redefinition is deliberately below the original loader: CDDloader resolves
+# cdd_loader at call time, so every BCDD sample now follows Mobile-CDNet exactly.
+def cdd_loader(img_path, label_path, aug):
+    directory, name = img_path
+    image_t1 = cv2.imread(directory + 'A/' + name, cv2.IMREAD_COLOR)
+    image_t2 = cv2.imread(directory + 'B/' + name, cv2.IMREAD_COLOR)
+    label = cv2.imread(label_path, cv2.IMREAD_GRAYSCALE)
+    assert image_t1 is not None and image_t2 is not None and label is not None, name
+    image = np.concatenate((image_t1, image_t2), axis=2)
+    image, label = (_mobile_train_transform if aug else _mobile_eval_transform)(image, label)
+    return image[:3], image[3:], label
