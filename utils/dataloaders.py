@@ -19,9 +19,9 @@ def full_path_loader(data_dir):
     train_label_paths = []
     val_label_paths = []
     for img in train_data:
-        train_label_paths.append(data_dir + 'train/label/' + img)
+        train_label_paths.append(data_dir + 'train/OUT/' + img)
     for img in valid_data:
-        val_label_paths.append(data_dir + 'val/label/' + img)
+        val_label_paths.append(data_dir + 'val/OUT/' + img)
 
 
     train_data_path = []
@@ -55,7 +55,7 @@ def full_test_loader(data_dir):
 
     test_label_paths = []
     for img in test_data:
-        test_label_paths.append(data_dir + 'test/label/' + img)
+        test_label_paths.append(data_dir + 'test/OUT/' + img)
 
     test_data_path = []
     for img in test_data:
@@ -103,37 +103,3 @@ class CDDloader(data.Dataset):
 
     def __len__(self):
         return len(self.full_load)
-
-
-# MOBILE_CDN_BCDD_PREPROCESSING
-import cv2
-import numpy as np
-from utils import mobile_cdnet_transforms as mobile_tr
-
-_mobile_mean = [0.406, 0.456, 0.485, 0.406, 0.456, 0.485]
-_mobile_std = [0.225, 0.224, 0.229, 0.225, 0.224, 0.229]
-_mobile_train_transform = mobile_tr.Compose([
-    mobile_tr.Normalize(mean=_mobile_mean, std=_mobile_std),
-    mobile_tr.Scale(256, 256),
-    mobile_tr.RandomCropResize(int(7.0 / 224.0 * 256)),
-    mobile_tr.RandomFlip(),
-    mobile_tr.RandomExchange(),
-    mobile_tr.ToTensor(),
-])
-_mobile_eval_transform = mobile_tr.Compose([
-    mobile_tr.Normalize(mean=_mobile_mean, std=_mobile_std),
-    mobile_tr.Scale(256, 256),
-    mobile_tr.ToTensor(),
-])
-
-# This redefinition is deliberately below the original loader: CDDloader resolves
-# cdd_loader at call time, so every BCDD sample now follows Mobile-CDNet exactly.
-def cdd_loader(img_path, label_path, aug):
-    directory, name = img_path
-    image_t1 = cv2.imread(directory + 'A/' + name, cv2.IMREAD_COLOR)
-    image_t2 = cv2.imread(directory + 'B/' + name, cv2.IMREAD_COLOR)
-    label = cv2.imread(label_path, cv2.IMREAD_GRAYSCALE)
-    assert image_t1 is not None and image_t2 is not None and label is not None, name
-    image = np.concatenate((image_t1, image_t2), axis=2)
-    image, label = (_mobile_train_transform if aug else _mobile_eval_transform)(image, label)
-    return image[:3], image[3:], label

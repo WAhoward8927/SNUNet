@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 from utils.dataloaders import (full_path_loader, full_test_loader, CDDloader)
 from utils.metrics import jaccard_loss, dice_loss
-from utils.losses import hybrid_loss, mobile_bce_dice_loss, mobile_bce_dice_loss
+from utils.losses import hybrid_loss
 from models.Models import Siam_NestedUNet_Conc, SNUNet_ECAM
 from models.siamunet_dif import SiamUnet_diff
 logging.basicConfig(level=logging.INFO)
@@ -149,11 +149,7 @@ def get_criterion(opt):
     """
     if opt.loss_function == 'hybrid':
         criterion = hybrid_loss
-    if opt.loss_function == 'mobile_bce_dice':
-        criterion = mobile_bce_dice_loss
-    if opt.loss_function == 'mobile_bce_dice':
-        criterion = mobile_bce_dice_loss
-    elif opt.loss_function == 'bce':
+    if opt.loss_function == 'bce':
         criterion = nn.CrossEntropyLoss()
     if opt.loss_function == 'dice':
         criterion = dice_loss
