@@ -55,8 +55,9 @@ logging.info('LOADING Model')
 model = load_model(opt, dev)
 
 criterion = get_criterion(opt)
-optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate) # Be careful when you adjust learning rate, you can refer to the linear scaling rule
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.5)
+# Mobile-CDNet SYSU protocol
+optimizer = torch.optim.Adam(model.parameters(), lr=opt.learning_rate, betas=(0.9,0.99), eps=1e-8, weight_decay=1e-4)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
 
 """
  Set starting values
