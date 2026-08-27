@@ -190,12 +190,11 @@ for epoch in range(opt.epochs):
             metadata['validation_metrics'] = mean_val_metrics
 
             # Save model and log
-            if not os.path.exists('./tmp'):
-                os.mkdir('./tmp')
-            with open('./tmp/metadata_epoch_' + str(epoch) + '.json', 'w') as fout:
+            os.makedirs(opt.weight_dir, exist_ok=True)
+            with open(os.path.join(opt.weight_dir, 'metadata_epoch_' + str(epoch) + '.json'), 'w') as fout:
                 json.dump(metadata, fout)
 
-            torch.save(model, './tmp/checkpoint_epoch_'+str(epoch)+'.pt')
+            torch.save(model, os.path.join(opt.weight_dir, 'checkpoint_epoch_' + str(epoch) + '.pt'))
 
             # comet.log_asset(upload_metadata_file_path)
             best_metrics = mean_val_metrics
